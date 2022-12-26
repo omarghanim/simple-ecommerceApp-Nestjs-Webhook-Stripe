@@ -6,7 +6,8 @@ import { PrismaService } from '../prisma/prisma.service';
 @Injectable()
 export class CartService {
     constructor(private readonly prisma:PrismaService,private readonly cookieService:CookieService){}
-    
+    //We can use session or redis to reduce queries to database
+    //but it just a test to run a project
     async addToCart(slug,quantity?,guest?,user?,res?){
         const userId = user?.userId
         let guestId = guest?.guestId
@@ -17,7 +18,7 @@ export class CartService {
         }
         const {id:productId,sku,price,discount,content} = productExists
         
-        if(userId){
+        if(userId){//find active cart because may be user have old cart and it didn;t remove for analysis purposes
             const cartItem = await this.prisma.cartItem.findFirst({ where: { productId, cart: { userId, status: "cart" }, active: true } })
             if (cartItem) {
                 
@@ -68,7 +69,7 @@ export class CartService {
         let guestId = guest?.guestId
          //find guest to add to it
          let cart = null
-        if(userId){
+        if(userId){ //return cart that have status cart or checkout ; if status was "paid" cart will be deactivated  
             cart = await this.prisma.cart.findFirst({ where: { userId, status: { in: ["cart", "checkout"] } },orderBy:{createdAt:"desc"}})
             
          }else if(guestId){             
