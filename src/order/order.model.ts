@@ -13,6 +13,9 @@ export class Order {
     @Field({ nullable: true })
     guestId?: string
 
+    @Field({ nullable: true })
+    sessionId?: string
+
     @Field()
     status:string
 
