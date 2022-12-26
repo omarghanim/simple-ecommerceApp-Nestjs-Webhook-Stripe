@@ -15,9 +15,11 @@ export class ProductService {
         if(!userExists){
             throw new Error("User not found")
         }
-        if(!userExists.vendor){
-            throw new Error("You have no permissions to add product ; you can contact us")
-        }
+                // if you need to make some restrictions to make just vendor or supplier user to add product
+      //  if(!userExists.vendor){
+        //    throw new Error("You have no permissions to add product ; you can contact us")
+      //  }
+
         
         return await this.prisma.product.create({
           data:{

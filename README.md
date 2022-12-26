@@ -81,7 +81,7 @@ $ npm run start:dev
 # then log into your stripe account
 $ stripe login --api-key YOUR_SECRET_KEY
 
-# make stript to listen to your server
+# make stripe to listen to your server
 $ stripe listen --forward-to localhost:5000/stripe/webhook
 ```
 
@@ -91,11 +91,14 @@ go to http://localhost:5000 (5000 is our port you can change it)
 ```bash
 #write the following mutation :
 mutation {
-  authenticateWithGoogle(token:"${token_you_get_from_client_side}"){
+  authenticateWithGoogle(token:`${token_you_get_from_client_side}`){ 
+                 #or you can get id_Token from https://developers.google.com/oauthplayground/
     accessToken  # you should get access_token that we w'll use it inside our app.
     #refreshToken
   }
 }
+#if you need any help to get google token you can follow this source ; it's really helpful
+$ https://fusebit.io/blog/gmail-api-node-tutorial/
 
 then go down to "Http Headers" and paste your access_token we got it as the following:
 {
@@ -161,7 +164,7 @@ mutation makeOrder{
   }
 }
 #Once you execute "makeOrder" mutation you will be redirected to stripe checkout page or you can click on the link that shown in server logs
-#Once you write fake data(https://stripe.com/docs/testing?testing-method=card-numbers#visa) and press pay webhook will update status of order to "paid"
+#Once you write fake data(https://stripe.com/docs/testing?testing-method=card-numbers#visa) and press pay webhook will update status of order to "paid" and will be redirected to success page
 
 #Get your paid orders
 
