@@ -1,0 +1,168 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["extendedIndexes"]
+
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                     String         @id @default(uuid())
+  email                  String  @unique() @db.VarChar(50)         
+  firstName              String  @db.VarChar(50)
+  lastName               String  @db.VarChar(50)
+  picture                String?
+  gender                 String?  @db.VarChar(10)         
+  birthDate              DateTime?      
+  country                String?
+  mobile                 String?  @db.VarChar(15)
+  type                   String         @default("USER")
+  vendor                 Boolean        @default(false)
+  intro                  String?        //for supplier
+  profile                String?        //for supplier
+  tokenVersion           Int            @default(0)
+  proucts                Product[]      @relation("UserProduct")
+  carts                  Cart[]         @relation("UserCart")
+  orders                 Order[]        @relation("UserOrder")
+  transactions           Transaction[]  @relation("UserTransaction")
+  createdAt              DateTime      @default(now())
+  updatedAt              DateTime?      @updatedAt
+  @@unique([id], name: "User_id_key")
+}
+
+
+model Product {
+  id         String    @id @default(uuid())
+  userId     String
+  title      String    @db.VarChar(75)
+  metaTitle  String?   @db.VarChar(100) 
+  slug       String    @db.VarChar(100) @unique() 
+  image      String?
+  desc       String?
+  summary    String?
+  price      Float  
+  sku        String    @db.VarChar(100)
+  discount   Float     @default(0)
+  quantity   Int
+  active     Boolean   @default(true)
+  categoryId String 
+  content    String?
+  user       User        @relation("UserProduct", fields: [userId], references: [id], onDelete: Cascade)
+  cartItems  CartItem[]  @relation("CartItemProduct")
+  orderItems OrderItem[] @relation("ProductOrderItem")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime? @updatedAt
+  @@index([userId(sort: Asc)])
+}
+
+model Category{
+ id         Int    @id @default(autoincrement())
+ parentId   String?   // identify the parent category
+ name       String    @db.VarChar(75)
+ metaTitle  String?   @db.VarChar(100)
+ slug       String    @db.VarChar(100)
+ desc       String?   
+@@index([parentId(sort: Asc)])
+}
+
+model Cart {
+id         Int    @id @default(autoincrement())
+userId     String?
+guestId    String?   @db.VarChar(100) @unique()
+sessionId  String?   @db.VarChar(100) @unique() //session of transaction
+status     String    @db.VarChar(10)
+user       User?     @relation("UserCart",fields:[userId],references:[id],onDelete:SetNull)
+createdAt  DateTime  @default(now())
+updatedAt  DateTime? @updatedAt
+cartItems  CartItem[] @relation("Cart_CartItem")
+}
+
+
+model CartItem {
+id         Int    @id @default(autoincrement())
+cartId     Int
+productId  String
+sku        String    @db.VarChar(100)
+price      Float     @default(0)
+discount   Float     @default(0)
+quantity   Int       @default(0)
+active     Boolean   @default(true)
+content    String?   
+createdAt  DateTime  @default(now())
+updatedAt  DateTime? @updatedAt
+product    Product   @relation("CartItemProduct",fields:[productId],references:[id])
+cart       Cart      @relation("Cart_CartItem",fields:[cartId],references:[id],onDelete:Cascade)
+@@index([productId(sort: Asc)])
+@@index([cartId(sort: Asc)])
+}
+
+model Order{
+id         Int    @id @default(autoincrement())
+userId     String?
+guestId    String?   @db.VarChar(100) @unique()
+sessionId  String?   @db.VarChar(100) @unique() //session of transaction (stripe transactionId)
+status     String    @db.VarChar(10)
+subTotal   Float     //The total price of the Order Items.
+itemDiscount Float   @default(0)  
+tax        Float     @default(0)
+shipping   Float     @default(0)
+total      Float     @default(0)  //The total price of the Order including tax and shipping. It excludes the items discount.
+promo      String?   @db.VarChar(50)
+discount   Float     
+grandTotal Float       //	The grand total of the order to be paid by the buyer.
+firstName  String?   @db.VarChar(50)
+lastName   String?   @db.VarChar(50)
+mobile     String?   @db.VarChar(15)
+email      String?   @db.VarChar(50)
+address    String?   @db.VarChar(100)
+city       String?   @db.VarChar(50)
+province   String?   @db.VarChar(50)
+country    String?   @db.VarChar(50)
+content    String?   
+createdAt  DateTime  @default(now())
+updatedAt  DateTime? @updatedAt
+user       User?     @relation("UserOrder",fields:[userId],references:[id])
+orderItems OrderItem[]     @relation("Order_OrderItem")
+transaction Transaction? @relation("Order_Transaction")
+@@index([userId(sort: Asc)])
+}
+
+model OrderItem {
+id         Int    @id @default(autoincrement())
+productId  String
+orderId    Int
+sku        String   @db.VarChar(100)
+price      Float     @default(0)
+discount   Float     @default(0)
+quantity   Int       @default(0)
+content    String?   
+createdAt  DateTime  @default(now())
+updatedAt  DateTime? @updatedAt
+order      Order     @relation("Order_OrderItem",fields:[orderId],references:[id])
+product    Product   @relation("ProductOrderItem",fields:[productId],references:[id])
+@@index([orderId(sort: Asc)])
+@@index([productId(sort: Asc)])
+}
+
+model Transaction {
+id         Int    @id @default(autoincrement())
+email      String //email that user was recorded in gateway(stripe)
+userId     String?
+guestId    String?   @db.VarChar(100) @unique()
+sessionId  String    @db.VarChar(100) @unique() //sessionId from stripe or gateway
+orderId    Int
+type       String    @db.VarChar(50) //The type of order transaction can be either Credit or Debit.
+mode       String    @db.VarChar(50)  //The mode of the order transaction can be Offline, Cash On Delivery, Cheque, Draft, Wired, and Online.
+status     String    @db.VarChar(10) //	The status of the order transaction can be New, Cancelled, Failed, Pending, Declined, Rejected, and Success.
+total      Float
+content    String?   
+createdAt  DateTime  @default(now())
+updatedAt  DateTime? @updatedAt
+order      Order     @relation("Order_Transaction",fields:[orderId],references:[id])
+user       User?     @relation("UserTransaction",fields:[userId],references:[id])
+@@index([orderId(sort: Asc)])
+@@index([userId(sort: Asc)])
+} 
