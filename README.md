@@ -49,7 +49,7 @@ $ CLIENT_ID=write_your_google_clientId
 $ CLIENT_SECRET=write_your_google_client_secret
 $ STRIPE_SECRET_KEY=YOUR_STRIPE_SECRET_KEY
 $ CLIENT_URL=http://localhost:5000/stripe
-$ WEBHOOK_SECRET=YOUR_WEBHOOK_SECRET
+$ WEBHOOK_SECRET=YOUR_WEBHOOK_SECRET #you will get it when running stripe-cli
 
 ```
 
