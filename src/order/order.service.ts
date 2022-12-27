@@ -87,7 +87,7 @@ export class OrderService {
                 }
             }
         })
-        order['cartId'] = cartId
+
         await fetch(`http://localhost:5000/stripe/checkout`, {
             method: 'POST', headers: {
                 // Check what headers the API needs. A couple of usuals right below

@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { generate } from 'shortid';
+import { GuestContext, UserContext } from 'src/user/user.model';
 import { CookieService } from '../cookie/cookie.service';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class CartService {
     constructor(private readonly prisma:PrismaService,private readonly cookieService:CookieService){}
-    //We can use session or redis to reduce queries to database
-    //but it just a test to run a project
-    async addToCart(slug,quantity?,guest?,user?,res?){
+    
+    async addToCart(slug:string,quantity?:number,guest?:GuestContext,user?:UserContext,res?){
         const userId = user?.userId
         let guestId = guest?.guestId
    
@@ -18,7 +18,7 @@ export class CartService {
         }
         const {id:productId,sku,price,discount,content} = productExists
         
-        if(userId){//find active cart because may be user have old cart and it didn;t remove for analysis purposes
+        if(userId){
             const cartItem = await this.prisma.cartItem.findFirst({ where: { productId, cart: { userId, status: "cart" }, active: true } })
             if (cartItem) {
                 
@@ -44,7 +44,6 @@ export class CartService {
                 guestId = generate()
                 await this.cookieService.setCookieForUnLoggedUsers(res, guestId)
             }
-            console.log(guestId);
             const cartExists = await this.prisma.cart.findFirst({where:{guestId,status:"cart"}})
             if(cartExists){
             const cartItem = await this.prisma.cartItem.findFirst({ where: { productId, cartId:cartExists.id, active: true } })
@@ -64,12 +63,12 @@ export class CartService {
         };
     }
 
-    async getCartItems(guest,user){ //when user register update guest with userId
+    async getCartItems(guest:GuestContext,user:UserContext){ //when user register update guest with userId
         const userId = user?.userId
         let guestId = guest?.guestId
          //find guest to add to it
          let cart = null
-        if(userId){ //return cart that have status cart or checkout ; if status was "paid" cart will be deactivated  
+        if(userId){
             cart = await this.prisma.cart.findFirst({ where: { userId, status: { in: ["cart", "checkout"] } },orderBy:{createdAt:"desc"}})
             
          }else if(guestId){             
