@@ -189,7 +189,7 @@ query getMyOrders{
 }
 
 #To check order status from stripe gateway to be sure from its status if you have a problem in orer or trasaction table
-query getOrderStatusFromStripe{
+query getOrderStatusFromStripe{ #You must be Admin to execute query ; to be ADMIN you can modify user type from database
   getOrderStatusFromStripe(id:`${id_number}`)
 }
 

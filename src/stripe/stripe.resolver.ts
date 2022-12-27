@@ -7,7 +7,7 @@ import { StripeService } from './stripe.service';
 export class StripeResolver {
     constructor(private readonly stripeService:StripeService){}
 
-    @UseGuards(new AdminGuard()) //Just admin who can execute this query
+    @UseGuards(new AdminGuard()) //Just admin who can execute this query //to be ADMIN you can modify type from database(User Table)
     @Query(()=>String)
     async getOrderStatusFromStripe(@Args('id',{type:()=>Int})id:number){
         return this.stripeService.getOrderStatusFromStripe(id)
